@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NDT Execution Dashboard</title>
+<style>
+:root{
+  --bg:#f3f4f6;--card:#fff;--accent:#0ea5e9;
+  --good:#16a34a;--warn:#f59e0b;--bad:#ef4444
+}
+body{margin:0;font-family:system-ui;background:var(--bg);color:#0f172a}
+.container{max-width:1100px;margin:auto;padding:16px}
+.card{background:var(--card);padding:14px;border-radius:8px;margin-bottom:14px}
+h1,h3{margin:0 0 10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px;border-bottom:1px solid #e5e7eb}
+th{background:#fafafa}
+input,select,button{
+  padding:7px;border-radius:6px;border:1px solid #cbd5e1;width:100%
+}
+button{background:var(--accent);color:#fff;border:0;cursor:pointer}
+.flex{display:flex;gap:8px}
+.small{font-size:12px;color:#475569}
+.bar-bg{background:#e5e7eb;height:8px;border-radius:6px}
+.bar{height:8px;border-radius:6px;background:linear-gradient(90deg,#0ea5e9,#22c55e)}
+svg{width:100%}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>NDT Execution Dashboard</h1>
+<!-- KPI -->
+<div class="card flex">
+  <div style="flex:1">
+    <div class="small">Overall Progress</div>
+    <div id="overallPct" style="font-size:20px;font-weight:700">0%</div>
+    <div class="bar-bg"><div id="overallBar" class="bar" style="width:0%"></div></div>
+  </div>
+  <div style="flex:1">
+    <div class="small">Planned Amount</div>
+    <div id="plannedAmt" style="font-weight:700">₹ 0</div>
+  </div>
+  <div style="flex:1">
+    <div class="small">Earned Value</div>
+    <div id="earnedAmt" style="font-weight:700">₹ 0</div>
+  </div>
+  <div style="flex:1">
+    <div class="small">Status</div>
+    <div id="statusTxt" style="font-weight:700">Pending:0 • Ongoing:0 • Completed:0</div>
+  </div>
+</div>
+<!-- Chart -->
+<div class="card">
+  <h3>Activity Progress</h3>
+  <div id="chart"></div>
+</div>
+<!-- Master Table -->
+<div class="card">
+  <h3>Master Table</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Activity</th><th>Planned</th><th>Completed</th>
+        <th>%</th><th>Remaining</th><th>Earned ₹</th>
+      </tr>
+    </thead>
+    <tbody id="masterBody"></tbody>
+  </table>
+</div>
+<!-- Add Activity -->
+<div class="card">
+  <h3>Add Activity</h3>
+  <div class="flex">
+    <input id="actName" placeholder="Test name (UPV, CAPO…)">
+    <input id="actQty" type="number" placeholder="Planned qty">
+    <input id="actRate" type="number" placeholder="Unit rate ₹">
+    <button onclick="addActivity()">Add</button>
+  </div>
+</div>
+<!-- Add Daily Log -->
+<div class="card">
+  <h3>Add Daily Log</h3>
+  <div class="flex">
+    <input type="date" id="logDate">
+    <select id="logActivity"></select>
+    <input type="number" id="logQty" placeholder="Completed qty">
+    <button onclick="addLog()">Add</button>
+  </div>
+</div>
+<!-- Logs -->
+<div class="card">
+  <h3>Daily Logs</h3>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Activity</th><th>Qty</th><th></th></tr>
+    </thead>
+    <tbody id="logBody"></tbody>
+  </table>
+</div>
+</div>
+<script>
+const KM='ndt_master';
+const KL='ndt_logs';
+let master=JSON.parse(localStorage.getItem(KM))||[];
+let logs=JSON.parse(localStorage.getItem(KL))||[];
+const ₹=n=>'₹ '+(n||0).toLocaleString('en-IN');
+function save(){
+  localStorage.setItem(KM,JSON.stringify(master));
+  localStorage.setItem(KL,JSON.stringify(logs));
+}
+function addActivity(){
+  const n=actName.value.trim();
+  if(!n) return alert('Name required');
+  master.push({
+    activity:n,
+    qty:+actQty.value||0,
+    rate:+actRate.value||0
+  });
+  actName.value=actQty.value=actRate.value='';
+  save(); render();
+}
+function addLog(){
+  if(!logActivity.value) return alert('No activity');
+  logs.push({
+    date:logDate.value,
+    activity:logActivity.value,
+    qty:+logQty.value||0
+  });
+  logQty.value='';
+  save(); render();
+}
+function render(){
+  const body=masterBody; body.innerHTML='';
+  const chart=document.getElementById('chart'); chart.innerHTML='';
+  logActivity.innerHTML='';
+  let plan=0, earn=0, p=0,o=0,c=0;
+  master.forEach(m=>{
+    const done=logs.filter(l=>l.activity===m.activity)
+                   .reduce((s,l)=>s+l.qty,0);
+    const pct=m.qty?Math.min(done/m.qty,1):0;
+    const ev=pct*m.qty*m.rate;
+    plan+=m.qty*m.rate; earn+=ev;
+    pct===0?p++:pct<1?o++:c++;
+    body.innerHTML+=`
+      <tr>
+        <td>${m.activity}</td>
+        <td>${m.qty}</td>
+        <td>${done}</td>
+        <td>${(pct*100).toFixed(1)}%</td>
+        <td>${Math.max(m.qty-done,0)}</td>
+        <td>${₹(ev)}</td>
+      </tr>`;
+    chart.innerHTML+=`
+      <div class="small">${m.activity}</div>
+      <div class="bar-bg">
+        <div class="bar" style="width:${pct*100}%"></div>
+      </div>`;
+    logActivity.innerHTML+=`<option>${m.activity}</option>`;
+  });
+  overallPct.textContent=master.length
+    ?((master.reduce((s,m)=>s+(logs.filter(l=>l.activity===m.activity)
+    .reduce((a,b)=>a+b.qty,0)/(m.qty||1)),0)/master.length)*100).toFixed(1)+'%'
+    :'0%';
+  overallBar.style.width=overallPct.textContent;
+  plannedAmt.textContent=₹(plan);
+  earnedAmt.textContent=₹(earn);
+  statusTxt.textContent=`Pending:${p} • Ongoing:${o} • Completed:${c}`;
+  logBody.innerHTML='';
+  logs.forEach((l,i)=>{
+    logBody.innerHTML+=`
+      <tr>
+        <td>${l.date}</td>
+        <td>${l.activity}</td>
+        <td>${l.qty}</td>
+        <td><button onclick="delLog(${i})">X</button></td>
+      </tr>`;
+  });
+}
+function delLog(i){
+  logs.splice(i,1); save(); render();
+}
+render();
+</script>
+</body>
+</html>
