@@ -6,98 +6,186 @@
 <title>NDT Execution Dashboard</title>
 <style>
 :root{
-  --bg:#f3f4f6;--card:#fff;--accent:#0ea5e9;
-  --good:#16a34a;--warn:#f59e0b;--bad:#ef4444
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#0f172a;
+  --muted:#64748b;
+  --accent:#0ea5e9;
 }
-body{margin:0;font-family:system-ui;background:var(--bg);color:#0f172a}
-.container{max-width:1100px;margin:auto;padding:16px}
-.card{background:var(--card);padding:14px;border-radius:8px;margin-bottom:14px}
-h1,h3{margin:0 0 10px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:8px;border-bottom:1px solid #e5e7eb}
-th{background:#fafafa}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system;
+  background:var(--bg);
+  color:var(--text);
+}
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:20px;
+}
+h1{
+  margin:0 0 16px;
+  font-size:24px;
+}
+h3{
+  margin:0 0 12px;
+  font-size:16px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:14px;
+  margin-bottom:16px;
+}
+.grid-2{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:16px;
+}
+.small{font-size:12px;color:var(--muted)}
 input,select,button{
-  padding:7px;border-radius:6px;border:1px solid #cbd5e1;width:100%
+  width:100%;
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #cbd5e1;
+  font-size:13px;
 }
-button{background:var(--accent);color:#fff;border:0;cursor:pointer}
-.flex{display:flex;gap:8px}
-.small{font-size:12px;color:#475569}
-.bar-bg{background:#e5e7eb;height:8px;border-radius:6px}
-.bar{height:8px;border-radius:6px;background:linear-gradient(90deg,#0ea5e9,#22c55e)}
-svg{width:100%}
+button{
+  background:var(--accent);
+  color:#fff;
+  border:0;
+  cursor:pointer;
+}
+button:hover{opacity:.9}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th,td{
+  padding:8px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+}
+th{background:#fafafa}
+.progress-bg{
+  height:8px;
+  background:#e5e7eb;
+  border-radius:6px;
+}
+.progress-bar{
+  height:8px;
+  border-radius:6px;
+  background:var(--accent);
+}
+.kpi-strip{
+  display:grid;
+  grid-template-columns:1.5fr 1fr 1fr 1fr;
+  gap:16px;
+  align-items:center;
+}
+.kpi strong{font-size:18px}
+.stack{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
 </style>
 </head>
 <body>
 <div class="container">
 <h1>NDT Execution Dashboard</h1>
-<!-- KPI -->
-<div class="card flex">
-  <div style="flex:1">
+
+<!-- KPI STRIP -->
+<div class="card kpi-strip">
+  <div class="kpi">
     <div class="small">Overall Progress</div>
-    <div id="overallPct" style="font-size:20px;font-weight:700">0%</div>
-    <div class="bar-bg"><div id="overallBar" class="bar" style="width:0%"></div></div>
+    <strong id="overallPct">0%</strong>
+    <div class="progress-bg">
+      <div id="overallBar" class="progress-bar" style="width:0%"></div>
+    </div>
   </div>
-  <div style="flex:1">
+  <div class="kpi">
     <div class="small">Planned Amount</div>
-    <div id="plannedAmt" style="font-weight:700">₹ 0</div>
+    <strong id="plannedAmt">₹ 0</strong>
   </div>
-  <div style="flex:1">
+  <div class="kpi">
     <div class="small">Earned Value</div>
-    <div id="earnedAmt" style="font-weight:700">₹ 0</div>
+    <strong id="earnedAmt">₹ 0</strong>
   </div>
-  <div style="flex:1">
+  <div class="kpi">
     <div class="small">Status</div>
-    <div id="statusTxt" style="font-weight:700">Pending:0 • Ongoing:0 • Completed:0</div>
+    <strong id="statusTxt">Pending:0 · Ongoing:0 · Completed:0</strong>
   </div>
 </div>
-<!-- Chart -->
+
+<!-- ACTIVITY PROGRESS -->
 <div class="card">
   <h3>Activity Progress</h3>
-  <div id="chart"></div>
+  <div id="chart" class="stack"></div>
 </div>
-<!-- Master Table -->
-<div class="card">
-  <h3>Master Table</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Activity</th><th>Planned</th><th>Completed</th>
-        <th>%</th><th>Remaining</th><th>Earned ₹</th>
-      </tr>
-    </thead>
-    <tbody id="masterBody"></tbody>
-  </table>
-</div>
-<!-- Add Activity -->
-<div class="card">
-  <h3>Add Activity</h3>
-  <div class="flex">
-    <input id="actName" placeholder="Test name (UPV, CAPO…)">
-    <input id="actQty" type="number" placeholder="Planned qty">
-    <input id="actRate" type="number" placeholder="Unit rate ₹">
-    <button onclick="addActivity()">Add</button>
+
+<!-- MASTER + ADD ACTIVITY -->
+<div class="grid-2">
+  <div class="card">
+    <h3>Master Table</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Activity</th>
+          <th>Planned</th>
+          <th>Completed</th>
+          <th>%</th>
+          <th>Remaining</th>
+          <th>Earned ₹</th>
+        </tr>
+      </thead>
+      <tbody id="masterBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Add Activity</h3>
+    <div class="stack">
+      <input id="actName" placeholder="Test Name">
+      <input id="actQty" type="number" placeholder="Planned Qty">
+      <input id="actRate" type="number" placeholder="Unit Rate ₹">
+      <button onclick="addActivity()">Add</button>
+    </div>
   </div>
 </div>
-<!-- Add Daily Log -->
-<div class="card">
-  <h3>Add Daily Log</h3>
-  <div class="flex">
-    <input type="date" id="logDate">
-    <select id="logActivity"></select>
-    <input type="number" id="logQty" placeholder="Completed qty">
-    <button onclick="addLog()">Add</button>
+
+<!-- DAILY LOGS + ADD DAILY LOG -->
+<div class="grid-2">
+  <div class="card">
+    <h3>Daily Logs</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Activity</th>
+          <th>Qty</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="logBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Add Daily Log</h3>
+    <div class="stack">
+      <input type="date" id="logDate">
+      <select id="logActivity"></select>
+      <input type="number" id="logQty" placeholder="Completed Qty">
+      <button onclick="addLog()">Add</button>
+    </div>
   </div>
 </div>
-<!-- Logs -->
-<div class="card">
-  <h3>Daily Logs</h3>
-  <table>
-    <thead>
-      <tr><th>Date</th><th>Activity</th><th>Qty</th><th></th></tr>
-    </thead>
-    <tbody id="logBody"></tbody>
-  </table>
-</div>
+
 </div>
 <script>
 const KM='ndt_master';
