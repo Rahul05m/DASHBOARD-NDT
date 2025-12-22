@@ -117,9 +117,13 @@ th{background:#fafafa}
     <strong id="earnedAmt">₹ 0</strong>
   </div>
   <div class="kpi">
-    <div class="small">Status</div>
-    <strong id="statusTxt">Pending:0 · Ongoing:0 · Completed:0</strong>
+  <div class="small">Status</div>
+  <div id="statusTxt" style="font-weight:600; line-height:1.6">
+    <div>Pending: 0</div>
+    <div>Ongoing: 0</div>
+    <div>Completed: 0</div>
   </div>
+</div>
 </div>
 
 <!-- ACTIVITY PROGRESS -->
@@ -253,7 +257,11 @@ function render(){
   overallBar.style.width=overallPct.textContent;
   plannedAmt.textContent=₹(plan);
   earnedAmt.textContent=₹(earn);
-  statusTxt.textContent=`Pending:${p} • Ongoing:${o} • Completed:${c}`;
+ statusTxt.innerHTML = `
+  <div>Pending: ${p}</div>
+  <div>Ongoing: ${o}</div>
+  <div>Completed: ${c}</div>
+`;
   logBody.innerHTML='';
   logs.forEach((l,i)=>{
     logBody.innerHTML+=`
