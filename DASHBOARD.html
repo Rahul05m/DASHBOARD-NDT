@@ -97,7 +97,11 @@ th{background:#fafafa}
 </head>
 <body>
 <div class="container">
-<h1>NDT Execution Dashboard</h1>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+  <h1>NDT Exe – DASHBOARD</h1>
+  <button type="button" onclick="exportCSV()">Export CSV</button>
+</div>
+
 
 <!-- KPI STRIP -->
 <div class="card kpi-strip">
@@ -188,6 +192,17 @@ th{background:#fafafa}
       <button type="button" onclick="addLog()">Add</button>
     </div>
   </div>
+  <div class="card">
+  <h3>Quick Controls</h3>
+  <div class="stack">
+    <button type="button" style="background:#ef4444" onclick="clearLogs()">Clear Logs</button>
+    <button type="button" onclick="downloadHTML()">Download HTML</button>
+    <div class="small">
+      This single HTML file stores data in your browser (localStorage).
+      No server needed. Works offline after first load.
+    </div>
+  </div>
+</div>
 </div>
 
 </div>
@@ -275,6 +290,42 @@ function render(){
 }
 function delLog(i){
   logs.splice(i,1); save(); render();
+}
+  function exportCSV(){
+  let csv = "Activity,Planned,Completed,Percent,Remaining,Earned\n";
+
+  master.forEach(m=>{
+    const done = logs.filter(l=>l.activity===m.activity)
+                     .reduce((s,l)=>s+l.qty,0);
+    const pct = m.qty ? ((done/m.qty)*100).toFixed(1) : 0;
+    const remaining = Math.max(m.qty-done,0);
+    const earned = (done/m.qty||0)*m.qty*m.rate;
+
+    csv += `${m.activity},${m.qty},${done},${pct}%,${remaining},${earned}\n`;
+  });
+
+  const blob = new Blob([csv],{type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "NDT_Execution_Report.csv";
+  a.click();
+
+  URL.revokeObjectURL(url);
+    function clearLogs(){
+  if(!confirm("Clear all daily logs?")) return;
+  logs = [];
+  save();
+  render();
+}
+
+function downloadHTML(){
+  const a = document.createElement("a");
+  a.href = window.location.href;
+  a.download = "NDT_Dashboard.html";
+  a.click();
+}
 }
 render();
 </script>
