@@ -513,7 +513,7 @@ select option { background: var(--surface); color: var(--text-1); }
 <header id="top-header">
   <div class="header-left">
     <h1>NDT Dashboard</h1>
-    <span class="header-subtitle">Plant 03 &amp; Paint Stripping</span>
+    <span class="header-subtitle" id="projectName">Plant 03 & Paint Stripping</span>
   </div>
   <div class="header-right">
     <div id="themeToggle" role="button" aria-label="Toggle theme">
@@ -603,6 +603,9 @@ select option { background: var(--surface); color: var(--text-1); }
       <button id="addActivity" class="btn btn-primary" style="flex:1">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/></svg>
         Add Activity
+      </button>
+      <button class="btn btn-ghost" onclick="changeProjectName()">
+      Change Project Name
       </button>
       <button id="resetSample" class="btn btn-ghost">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clip-rule="evenodd"/></svg>
@@ -998,6 +1001,26 @@ document.getElementById('downloadHtml').addEventListener('click', () => {
 
 window.addEventListener('beforeunload', () => saveData(master, logs));
 window.addEventListener('load', () => setTimeout(() => renderMasterTable(master, logs), 120));
+
+// Load saved project name
+const savedProjectName =
+  localStorage.getItem('projectName') ||
+  'Plant 03 & Paint Stripping';
+
+document.getElementById('projectName').textContent = savedProjectName;
+
+// Change project name
+function changeProjectName() {
+  const name = prompt(
+    'Enter Project Name:',
+    document.getElementById('projectName').textContent
+  );
+
+  if (!name) return;
+
+  localStorage.setItem('projectName', name);
+  document.getElementById('projectName').textContent = name;
+}  
 </script>
 </body>
 </html>
