@@ -3,48 +3,82 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#0f172a" id="themeColor">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>NDT Execution Dashboard</title>
 <style>
-/* ── Design Tokens ─────────────────────────────────────────── */
+/* ── Design Tokens: Dark (default) ─────────────────────────── */
 :root {
-  --bg:          #0d1117;
-  --surface:     #161b22;
-  --surface-2:   #1c2330;
-  --border:      #30363d;
-  --border-soft: #21262d;
+  --bg:           #0d1117;
+  --surface:      #161b22;
+  --surface-2:    #1c2330;
+  --border:       #30363d;
+  --border-soft:  #21262d;
+  --header-bg:    rgba(13,17,23,0.90);
+  --nav-bg:       rgba(22,27,34,0.94);
+  --hover-row:    rgba(255,255,255,0.025);
+  --chart-bar-bg: #1c2330;
 
-  --accent:      #3b82f6;
-  --accent-dim:  rgba(59,130,246,0.12);
-  --accent-glow: rgba(59,130,246,0.3);
+  --accent:       #3b82f6;
+  --accent-dim:   rgba(59,130,246,0.13);
+  --accent-glow:  rgba(59,130,246,0.30);
 
-  --good:        #22c55e;
-  --good-dim:    rgba(34,197,94,0.12);
-  --warn:        #f59e0b;
-  --warn-dim:    rgba(245,158,11,0.12);
-  --bad:         #ef4444;
-  --bad-dim:     rgba(239,68,68,0.12);
+  --good:         #22c55e;
+  --good-dim:     rgba(34,197,94,0.13);
+  --warn:         #f59e0b;
+  --warn-dim:     rgba(245,158,11,0.13);
+  --bad:          #ef4444;
+  --bad-dim:      rgba(239,68,68,0.13);
 
-  --text-1:      #e6edf3;
-  --text-2:      #8b949e;
-  --text-3:      #484f58;
+  --text-1:       #e6edf3;
+  --text-2:       #8b949e;
+  --text-3:       #484f58;
 
-  --radius-sm:   8px;
-  --radius-md:   12px;
-  --radius-lg:   16px;
+  --radius-sm:    8px;
+  --radius-md:    12px;
+  --radius-lg:    16px;
 
-  --shadow-sm:   0 1px 3px rgba(0,0,0,0.4);
-  --shadow-md:   0 4px 12px rgba(0,0,0,0.5);
-  --shadow-lg:   0 8px 32px rgba(0,0,0,0.6);
+  --shadow-sm:    0 1px 4px rgba(0,0,0,0.45);
+  --shadow-md:    0 4px 14px rgba(0,0,0,0.55);
 
-  --nav-h:       68px;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --header-h:    56px;
+  --nav-h:        72px;
+  --safe-bottom:  env(safe-area-inset-bottom, 0px);
+  --header-h:     62px;
 }
 
-/* ── Reset ─────────────────────────────────────────────────── */
+/* ── Light Mode ─────────────────────────────────────────────── */
+body.light {
+  --bg:           #f0f4f8;
+  --surface:      #ffffff;
+  --surface-2:    #eaf0f7;
+  --border:       #ccd6e0;
+  --border-soft:  #dde5ef;
+  --header-bg:    rgba(255,255,255,0.90);
+  --nav-bg:       rgba(255,255,255,0.95);
+  --hover-row:    rgba(0,0,0,0.025);
+  --chart-bar-bg: #dde5ef;
+
+  --accent:       #2563eb;
+  --accent-dim:   rgba(37,99,235,0.10);
+  --accent-glow:  rgba(37,99,235,0.22);
+
+  --good:         #16a34a;
+  --good-dim:     rgba(22,163,74,0.10);
+  --warn:         #d97706;
+  --warn-dim:     rgba(217,119,6,0.10);
+  --bad:          #dc2626;
+  --bad-dim:      rgba(220,38,38,0.10);
+
+  --text-1:       #0f172a;
+  --text-2:       #475569;
+  --text-3:       #94a3b8;
+
+  --shadow-sm:    0 1px 4px rgba(0,0,0,0.08);
+  --shadow-md:    0 4px 14px rgba(0,0,0,0.10);
+}
+
+/* ── Reset ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-tap-highlight-color: transparent; }
 body {
@@ -54,217 +88,211 @@ body {
   min-height: 100dvh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  font-size: 16px;
+  transition: background 0.25s, color 0.25s;
 }
 
-/* ── App Shell ─────────────────────────────────────────────── */
-#app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-}
-
-/* ── Top Header ────────────────────────────────────────────── */
+/* ── Top Header ─────────────────────────────────────────────── */
 #top-header {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
   height: var(--header-h);
-  background: rgba(13,17,23,0.85);
+  background: var(--header-bg);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   border-bottom: 1px solid var(--border-soft);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 18px;
   gap: 12px;
+  transition: background 0.25s, border-color 0.25s;
 }
-.header-title {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.header-title h1 {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+.header-left { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.header-left h1 {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--text-1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.header-subtitle {
-  font-size: 11px;
-  color: var(--text-2);
-  margin-top: 1px;
-}
-.header-badge {
+.header-subtitle { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+.header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* ── Theme Toggle ───────────────────────────────────────────── */
+#themeToggle {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 6px 12px 6px 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.dot-live {
-  width: 6px; height: 6px;
-  background: var(--good);
+#themeToggle:active { transform: scale(0.95); }
+.tog-track {
+  width: 38px; height: 22px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 99px;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.25s, border-color 0.25s;
+}
+body.light .tog-track { background: var(--accent); border-color: var(--accent); }
+.tog-knob {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
   border-radius: 50%;
-  animation: pulse 2s ease-in-out infinite;
+  background: var(--text-3);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), background 0.2s;
 }
-@keyframes pulse {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-.badge-text {
-  font-size: 11px;
-  color: var(--good);
-  font-weight: 500;
+body.light .tog-knob { transform: translateX(16px); background: #fff; }
+.tog-icon { font-size: 16px; line-height: 1; }
+.tog-label { font-size: 14px; font-weight: 600; color: var(--text-2); }
+body.light .tog-label { color: var(--accent); }
+
+/* CSV button in header */
+#exportCsv {
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-/* ── Page Container ────────────────────────────────────────── */
+/* ── Pages ──────────────────────────────────────────────────── */
 #pages {
-  flex: 1;
   padding-top: var(--header-h);
-  padding-bottom: calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
+  min-height: 100dvh;
   overflow-y: auto;
 }
 .page {
   display: none;
-  padding: 16px;
-  max-width: 800px;
+  padding: 18px 16px;
+  max-width: 820px;
   margin: 0 auto;
-  animation: fadeSlide 0.2s ease;
+  animation: fadeUp 0.22s ease;
 }
 .page.active { display: block; }
-@keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(6px); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Cards ─────────────────────────────────────────────────── */
+/* ── Section Label ──────────────────────────────────────────── */
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin: 24px 0 10px;
+}
+.section-label:first-child { margin-top: 4px; }
+
+/* ── Cards ──────────────────────────────────────────────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
-}
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  padding: 18px;
   margin-bottom: 14px;
-}
-.card-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.card-action {
-  font-size: 12px;
-  color: var(--accent);
-  cursor: pointer;
-  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.25s, border-color 0.25s;
 }
 
 /* ── KPI Grid ───────────────────────────────────────────────── */
 .kpi-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 .kpi-item {
   background: var(--surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
-  padding: 14px;
+  padding: 18px 16px;
   box-shadow: var(--shadow-sm);
+  transition: background 0.25s, border-color 0.25s;
 }
 .kpi-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-2);
-  font-weight: 500;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
+  letter-spacing: 0.07em;
+  margin-bottom: 8px;
 }
 .kpi-value {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
   color: var(--text-1);
   line-height: 1.1;
 }
+.kpi-value.small { font-size: 18px; }
 .kpi-sub {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-3);
-  margin-top: 4px;
+  margin-top: 5px;
 }
-.kpi-item.accent-blue { border-color: rgba(59,130,246,0.25); }
+.kpi-item.accent-blue { border-color: rgba(59,130,246,0.30); }
 .kpi-item.accent-blue .kpi-value { color: var(--accent); }
-.kpi-item.accent-green { border-color: rgba(34,197,94,0.2); }
+.kpi-item.accent-green { border-color: rgba(34,197,94,0.25); }
 .kpi-item.accent-green .kpi-value { color: var(--good); }
 
 /* ── Progress Bar ───────────────────────────────────────────── */
 .progress-track {
-  height: 6px;
+  height: 7px;
   background: var(--surface-2);
   border-radius: 99px;
   overflow: hidden;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 .progress-fill {
   height: 100%;
   border-radius: 99px;
   background: linear-gradient(90deg, var(--accent), #34d399);
-  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
 }
 
 /* ── Status Pills ───────────────────────────────────────────── */
-.status-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
+.status-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
+  gap: 6px;
+  padding: 6px 13px;
   border-radius: 99px;
-  font-size: 12px;
-  font-weight: 500;
-}
-.pill-dot { width: 6px; height: 6px; border-radius: 50%; }
-.pill.pending  { background: var(--warn-dim);  color: var(--warn);  }
-.pill.ongoing  { background: var(--accent-dim); color: var(--accent); }
-.pill.done     { background: var(--good-dim);  color: var(--good);  }
-.pill.pending .pill-dot  { background: var(--warn); }
-.pill.ongoing .pill-dot  { background: var(--accent); }
-.pill.done    .pill-dot  { background: var(--good); }
-
-/* ── Section Label ──────────────────────────────────────────── */
-.section-label {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 20px 0 10px;
 }
-.section-label:first-child { margin-top: 4px; }
+.pill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.pill.pending  { background: var(--warn-dim);   color: var(--warn);   }
+.pill.ongoing  { background: var(--accent-dim);  color: var(--accent); }
+.pill.done     { background: var(--good-dim);   color: var(--good);   }
+.pill.pending .pill-dot { background: var(--warn); }
+.pill.ongoing .pill-dot { background: var(--accent); }
+.pill.done    .pill-dot { background: var(--good); }
 
-/* ── Chart Container ────────────────────────────────────────── */
+/* ── Chart ──────────────────────────────────────────────────── */
 #chartWrap {
   overflow-x: hidden;
   overflow-y: auto;
-  max-height: 320px;
+  max-height: 340px;
   border-radius: var(--radius-sm);
   background: var(--surface-2);
-  padding: 12px 8px;
+  padding: 14px 10px;
+  transition: background 0.25s;
 }
 #chartWrap svg text { font-family: inherit; }
 
@@ -275,58 +303,60 @@ body {
   border: 1px solid var(--border-soft);
   margin-top: 4px;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12.5px;
-}
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
 th {
   background: var(--surface-2);
   color: var(--text-2);
-  font-weight: 600;
-  font-size: 11px;
+  font-weight: 700;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 10px 12px;
+  letter-spacing: 0.06em;
+  padding: 13px 14px;
   text-align: left;
   white-space: nowrap;
-  position: sticky;
-  top: 0;
-  z-index: 1;
+  position: sticky; top: 0; z-index: 1;
   border-bottom: 1px solid var(--border);
+  transition: background 0.25s;
 }
 td {
-  padding: 10px 12px;
+  padding: 13px 14px;
   border-bottom: 1px solid var(--border-soft);
   color: var(--text-1);
   vertical-align: middle;
+  font-size: 15px;
 }
 tr:last-child td { border-bottom: none; }
-tr:hover td { background: rgba(255,255,255,0.02); }
+tr:hover td { background: var(--hover-row); }
 td.muted { color: var(--text-2); }
+
+/* smaller inputs inside edit table */
+#editMaster input {
+  padding: 8px 10px;
+  font-size: 15px;
+}
 
 /* ── Forms ──────────────────────────────────────────────────── */
 .form-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 .form-group.single { grid-template-columns: 1fr; }
 input[type="number"],
 input[type="text"],
 input[type="date"],
 select {
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   width: 100%;
   background: var(--surface-2);
   color: var(--text-1);
-  font-size: 14px;
+  font-size: 16px;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.25s;
   -webkit-appearance: none;
   appearance: none;
 }
@@ -335,96 +365,112 @@ input:focus, select:focus {
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 input::placeholder { color: var(--text-3); }
-select option { background: var(--surface); }
-
-/* smaller inputs inside edit table */
-#editMaster input {
-  padding: 6px 8px;
-  font-size: 13px;
-}
+select option { background: var(--surface); color: var(--text-1); }
 
 /* ── Buttons ────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
+  gap: 7px;
+  padding: 13px 18px;
   border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   font-family: inherit;
-  transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+  transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s, background 0.2s;
   white-space: nowrap;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--accent); color: #fff; box-shadow: 0 0 0 0 var(--accent-glow); }
-.btn-primary:hover { box-shadow: 0 0 0 3px var(--accent-glow); }
-.btn-ghost { background: var(--surface-2); color: var(--text-1); border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--surface); }
-.btn-danger { background: var(--bad-dim); color: var(--bad); border: 1px solid rgba(239,68,68,0.25); }
-.btn-danger:hover { background: rgba(239,68,68,0.2); }
-.btn-warn { background: var(--warn-dim); color: var(--warn); border: 1px solid rgba(245,158,11,0.25); }
-.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
-.btn-full { width: 100%; }
-.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.btn:active { transform: scale(0.96); }
+.btn svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-/* legacy .red / .btn used by JS-generated remove buttons */
-.btn.red, .red {
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { box-shadow: 0 0 0 3px var(--accent-glow); }
+.btn-ghost {
+  background: var(--surface-2);
+  color: var(--text-1);
+  border: 1.5px solid var(--border);
+}
+.btn-ghost:hover { background: var(--surface); }
+.btn-danger {
   background: var(--bad-dim);
   color: var(--bad);
-  border: 1px solid rgba(239,68,68,0.25);
-  padding: 5px 10px;
-  font-size: 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
+  border: 1.5px solid rgba(239,68,68,0.25);
 }
-.btn.red:hover { background: rgba(239,68,68,0.25); }
+.btn-danger:hover { background: rgba(239,68,68,0.22); }
+.btn-sm { padding: 8px 12px; font-size: 14px; border-radius: 7px; }
+.btn-full { width: 100%; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+/* JS-generated remove buttons */
+.btn.red, button.red {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bad-dim);
+  color: var(--bad);
+  border: 1.5px solid rgba(239,68,68,0.25);
+  padding: 7px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn.red:active, button.red:active { transform: scale(0.95); }
+.btn.red:hover, button.red:hover { background: rgba(239,68,68,0.22); }
 
 /* ── Info Strip ─────────────────────────────────────────────── */
 .info-strip {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-3);
-  line-height: 1.5;
-  padding: 12px 14px;
+  line-height: 1.6;
+  padding: 13px 15px;
   background: var(--surface-2);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-soft);
-  margin-top: 10px;
+  margin-top: 12px;
+  transition: background 0.25s;
 }
 
-/* ── Bottom Navigation ──────────────────────────────────────── */
+/* ── Empty State ────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 36px 20px;
+  color: var(--text-3);
+  font-size: 15px;
+}
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+/* ── Bottom Nav ─────────────────────────────────────────────── */
 #bottom-nav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   z-index: 200;
   height: calc(var(--nav-h) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
-  background: rgba(22,27,34,0.92);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border-top: 1px solid var(--border);
+  background: var(--nav-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-top: 1px solid var(--border-soft);
   display: flex;
   align-items: flex-start;
   padding-top: 4px;
+  transition: background 0.25s, border-color 0.25s;
 }
-.nav-items {
-  display: flex;
-  width: 100%;
-  height: var(--nav-h);
-}
+.nav-items { display: flex; width: 100%; height: var(--nav-h); }
 .nav-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
   cursor: pointer;
   color: var(--text-3);
   padding: 8px 4px;
@@ -436,84 +482,65 @@ select option { background: var(--surface); }
   position: relative;
 }
 .nav-item.active { color: var(--accent); }
-.nav-item svg { width: 22px; height: 22px; flex-shrink: 0; }
-.nav-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
+.nav-item svg { width: 24px; height: 24px; flex-shrink: 0; }
+.nav-label { font-size: 11px; font-weight: 700; letter-spacing: 0.02em; }
 .nav-indicator {
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 28px;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
+  width: 30px; height: 3px;
+  border-radius: 0 0 4px 4px;
   background: var(--accent);
   opacity: 0;
   transition: opacity 0.2s;
 }
 .nav-item.active .nav-indicator { opacity: 1; }
 
-/* ── Desktop adjustments ────────────────────────────────────── */
-@media (min-width: 640px) {
-  .page { padding: 20px 24px; }
+/* ── Desktop ────────────────────────────────────────────────── */
+@media (min-width: 600px) {
+  .page { padding: 22px 28px; }
   .kpi-grid { grid-template-columns: repeat(4, 1fr); }
-  #top-header { padding: 0 24px; }
-  .header-title h1 { font-size: 16px; }
+  #top-header { padding: 0 28px; }
+  .header-left h1 { font-size: 20px; }
   #bottom-nav {
-    left: 50%;
-    transform: translateX(-50%);
-    width: 480px;
+    left: 50%; transform: translateX(-50%);
+    width: 500px;
     border-radius: 20px 20px 0 0;
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
+    border-left: 1px solid var(--border-soft);
+    border-right: 1px solid var(--border-soft);
   }
-}
-
-/* ── Empty State ────────────────────────────────────────────── */
-.empty-state {
-  text-align: center;
-  padding: 32px 16px;
-  color: var(--text-3);
-  font-size: 13px;
-}
-.empty-icon { font-size: 32px; margin-bottom: 8px; }
-
-/* ── Export btn in header ───────────────────────────────────── */
-#exportCsv {
-  padding: 7px 12px;
-  font-size: 12px;
 }
 </style>
 </head>
 <body>
 
-<!-- ── Top Header ─────────────────────────────────────────── -->
+<!-- ── Header ────────────────────────────────────────────────── -->
 <header id="top-header">
-  <div class="header-title">
+  <div class="header-left">
     <h1>NDT Dashboard</h1>
     <span class="header-subtitle">Plant 03 &amp; Paint Stripping</span>
   </div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <div class="header-badge">
-      <div class="dot-live"></div>
-      <span class="badge-text">Live</span>
+  <div class="header-right">
+    <div id="themeToggle" role="button" aria-label="Toggle theme">
+      <div class="tog-track"><div class="tog-knob"></div></div>
+      <span class="tog-icon" id="togIcon">🌙</span>
+      <span class="tog-label" id="togLabel">Dark</span>
     </div>
-    <button class="btn btn-ghost btn-sm" id="exportCsv">CSV</button>
+    <button class="btn btn-ghost btn-sm" id="exportCsv">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z"/><path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"/></svg>
+      CSV
+    </button>
   </div>
 </header>
 
-<!-- ── Pages ──────────────────────────────────────────────── -->
+<!-- ── Pages ─────────────────────────────────────────────────── -->
 <div id="pages">
 
   <!-- TAB 1: Dashboard -->
   <div class="page active" id="page-dashboard">
 
     <div class="section-label">Overview</div>
-
-    <!-- KPI Grid -->
     <div class="kpi-grid">
       <div class="kpi-item accent-blue">
         <div class="kpi-label">Progress</div>
@@ -522,65 +549,50 @@ select option { background: var(--surface); }
       </div>
       <div class="kpi-item">
         <div class="kpi-label">Planned</div>
-        <div id="plannedAmt" class="kpi-value" style="font-size:16px">—</div>
+        <div id="plannedAmt" class="kpi-value small">—</div>
         <div class="kpi-sub">Total scheduled</div>
       </div>
       <div class="kpi-item accent-green">
         <div class="kpi-label">Earned</div>
-        <div id="earnedVal" class="kpi-value" style="font-size:16px">—</div>
+        <div id="earnedVal" class="kpi-value small">—</div>
         <div class="kpi-sub">Value earned</div>
       </div>
       <div class="kpi-item">
         <div class="kpi-label">Status</div>
-        <div id="statusCounts" class="kpi-value" style="font-size:13px;line-height:1.5">—</div>
+        <div id="statusCounts">—</div>
       </div>
     </div>
 
-    <!-- Activity Chart -->
     <div class="section-label">Activity Progress</div>
-    <div class="card" style="padding:12px">
+    <div class="card" style="padding:14px">
       <div id="chartWrap"></div>
     </div>
 
-    <!-- Progress Summary Table -->
     <div class="section-label">Progress Summary</div>
     <div class="card" style="padding:0;overflow:hidden">
       <div class="table-wrap" style="border:none;border-radius:0;margin:0">
         <table id="masterTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Activity</th>
-              <th>Site</th>
-              <th>Plan</th>
-              <th>Done</th>
-              <th>%</th>
-              <th>Left</th>
-              <th>Earned ₹</th>
-            </tr>
-          </thead>
+          <thead><tr>
+            <th>#</th><th>Activity</th><th>Site</th>
+            <th>Plan</th><th>Done</th><th>%</th><th>Left</th><th>Earned ₹</th>
+          </tr></thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
 
-  </div><!-- /page-dashboard -->
+  </div>
 
   <!-- TAB 2: Plan -->
   <div class="page" id="page-plan">
 
     <div class="section-label">Master Plan</div>
     <div class="card" style="padding:0;overflow:hidden">
-      <div class="table-wrap" style="border:none;border-radius:0;margin:0;max-height:400px">
+      <div class="table-wrap" style="border:none;border-radius:0;margin:0;max-height:420px">
         <table id="editMaster">
-          <thead>
-            <tr>
-              <th>WBS</th>
-              <th>Activity</th>
-              <th>Planned Qty</th>
-              <th>Unit Rate ₹</th>
-            </tr>
-          </thead>
+          <thead><tr>
+            <th>WBS</th><th>Activity</th><th>Planned Qty</th><th>Unit Rate ₹</th>
+          </tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -588,16 +600,16 @@ select option { background: var(--surface); }
 
     <div class="btn-row">
       <button id="addActivity" class="btn btn-primary" style="flex:1">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/></svg>
         Add Activity
       </button>
       <button id="resetSample" class="btn btn-ghost">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clip-rule="evenodd"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clip-rule="evenodd"/></svg>
         Reset Sample
       </button>
     </div>
 
-  </div><!-- /page-plan -->
+  </div>
 
   <!-- TAB 3: Daily Logs -->
   <div class="page" id="page-logs">
@@ -612,7 +624,7 @@ select option { background: var(--surface); }
         <div class="form-group">
           <input type="number" id="logCompleted" placeholder="Completed qty" min="0" value="0" required>
           <button class="btn btn-primary btn-full" type="submit">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/></svg>
             Log Entry
           </button>
         </div>
@@ -621,16 +633,11 @@ select option { background: var(--surface); }
 
     <div class="section-label">Log History</div>
     <div class="card" style="padding:0;overflow:hidden">
-      <div class="table-wrap" style="border:none;border-radius:0;margin:0;max-height:380px">
+      <div class="table-wrap" style="border:none;border-radius:0;margin:0;max-height:400px">
         <table id="dailyTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Activity</th>
-              <th>Qty</th>
-              <th></th>
-            </tr>
-          </thead>
+          <thead><tr>
+            <th>Date</th><th>Activity</th><th>Qty</th><th></th>
+          </tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -640,24 +647,24 @@ select option { background: var(--surface); }
     <div class="card">
       <div class="btn-row" style="margin-top:0">
         <button id="clearLogs" class="btn btn-danger" style="flex:1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd"/></svg>
           Clear All Logs
         </button>
         <button id="downloadHtml" class="btn btn-ghost" style="flex:1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z"/><path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z"/><path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"/></svg>
           Download HTML
         </button>
       </div>
       <div class="info-strip">
-        All data is stored in your browser's localStorage — no server required. Works fully offline after the first load.
+        All data is stored in your browser's localStorage — no server needed. Works fully offline.
       </div>
     </div>
 
-  </div><!-- /page-logs -->
+  </div>
 
 </div><!-- /pages -->
 
-<!-- ── Bottom Navigation ───────────────────────────────────── -->
+<!-- ── Bottom Nav ────────────────────────────────────────────── -->
 <nav id="bottom-nav">
   <div class="nav-items">
     <button class="nav-item active" data-page="dashboard">
@@ -687,9 +694,31 @@ select option { background: var(--surface); }
   </div>
 </nav>
 
-<!-- ── JavaScript (identical logic, new tab routing) ──────── -->
 <script>
-// ── Tab navigation ─────────────────────────────────────────
+/* ── Theme Toggle ──────────────────────────────────────────── */
+(function(){
+  const saved = localStorage.getItem('ndt_theme') || 'dark';
+  if(saved === 'light') document.body.classList.add('light');
+  updateToggleUI();
+
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    const isLight = document.body.classList.contains('light');
+    localStorage.setItem('ndt_theme', isLight ? 'light' : 'dark');
+    updateToggleUI();
+    // re-render chart with new colours
+    if(typeof renderMasterTable === 'function') renderMasterTable(master, logs);
+  });
+
+  function updateToggleUI(){
+    const isLight = document.body.classList.contains('light');
+    document.getElementById('togIcon').textContent  = isLight ? '☀️' : '🌙';
+    document.getElementById('togLabel').textContent = isLight ? 'Light' : 'Dark';
+    document.getElementById('themeColor').content   = isLight ? '#f0f4f8' : '#0f172a';
+  }
+})();
+
+/* ── Tab Navigation ────────────────────────────────────────── */
 document.querySelectorAll('.nav-item').forEach(btn => {
   btn.addEventListener('click', () => {
     const target = btn.dataset.page;
@@ -697,53 +726,59 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('page-' + target).classList.add('active');
-    // scroll to top when switching tabs
     document.getElementById('pages').scrollTo({ top: 0, behavior: 'smooth' });
-    // re-render chart in case container was hidden on first paint
-    if (target === 'dashboard') renderMasterTable(master, logs);
+    if(target === 'dashboard') renderMasterTable(master, logs);
   });
 });
 
-// ── Business Logic (unchanged) ─────────────────────────────
+/* ── Data Keys ─────────────────────────────────────────────── */
 const SAMPLE_MASTER = [];
 const KEY_MASTER = 'ndt_master_v1';
-const KEY_LOGS = 'ndt_logs_v1';
+const KEY_LOGS   = 'ndt_logs_v1';
 
 function loadData(){
   const rawMaster = localStorage.getItem(KEY_MASTER);
-  const rawLogs = localStorage.getItem(KEY_LOGS);
-  let master = rawMaster ? JSON.parse(rawMaster) : SAMPLE_MASTER.slice();
-  let logs = rawLogs ? JSON.parse(rawLogs) : [];
-  return {master, logs};
+  const rawLogs   = localStorage.getItem(KEY_LOGS);
+  return {
+    master: rawMaster ? JSON.parse(rawMaster) : SAMPLE_MASTER.slice(),
+    logs:   rawLogs   ? JSON.parse(rawLogs)   : []
+  };
 }
-
 function saveData(master, logs){
   localStorage.setItem(KEY_MASTER, JSON.stringify(master));
-  localStorage.setItem(KEY_LOGS, JSON.stringify(logs));
+  localStorage.setItem(KEY_LOGS,   JSON.stringify(logs));
 }
 
+/* ── Helpers ───────────────────────────────────────────────── */
 function formatINR(n){ return '₹ ' + Number(n||0).toLocaleString('en-IN'); }
 function pct(v){ return (Math.round((v||0)*1000)/10) + '%'; }
 
+/* ── Business Logic ────────────────────────────────────────── */
 function computeTotals(master, logs){
   const map = {};
-  master.forEach(r => map[r.activity] = {planned: r.qty, unitRate: r.unitRate, plannedAmount: r.qty*(r.unitRate||0), completed:0});
-  logs.forEach(l => { if(!l.activity) return; map[l.activity] = map[l.activity] || {planned:0,unitRate:0,plannedAmount:0,completed:0}; map[l.activity].completed += Number(l.completed||0); });
-  const rows = master.map(r => {
-    const t = map[r.activity] || {planned:r.qty,unitRate:r.unitRate,plannedAmount:r.qty*(r.unitRate||0),completed:0};
-    const completed = t.completed || 0;
-    const pctComplete = t.planned === 0 ? (completed===0?0:1) : Math.min(1, completed / t.planned);
-    const remaining = Math.max(0, t.planned - completed);
-    const earnedValue = Math.round((t.plannedAmount||0) * pctComplete);
-    return {wbs:r.id, activity:r.activity, building:r.building, planned:r.qty, completed, pctComplete, remaining, earnedValue, plannedAmount: t.plannedAmount||0};
+  master.forEach(r => {
+    map[r.activity] = { planned: r.qty, unitRate: r.unitRate, plannedAmount: r.qty*(r.unitRate||0), completed: 0 };
   });
-  return rows;
+  logs.forEach(l => {
+    if(!l.activity) return;
+    map[l.activity] = map[l.activity] || { planned:0, unitRate:0, plannedAmount:0, completed:0 };
+    map[l.activity].completed += Number(l.completed||0);
+  });
+  return master.map(r => {
+    const t = map[r.activity] || { planned:r.qty, unitRate:r.unitRate, plannedAmount:r.qty*(r.unitRate||0), completed:0 };
+    const completed    = t.completed || 0;
+    const pctComplete  = t.planned === 0 ? (completed===0?0:1) : Math.min(1, completed/t.planned);
+    const remaining    = Math.max(0, t.planned - completed);
+    const earnedValue  = Math.round((t.plannedAmount||0) * pctComplete);
+    return { wbs:r.id, activity:r.activity, building:r.building, planned:r.qty, completed, pctComplete, remaining, earnedValue, plannedAmount:t.plannedAmount||0 };
+  });
 }
 
 function renderMasterTable(master, logs){
-  const tbody = document.querySelector('#masterTable tbody'); tbody.innerHTML='';
+  const tbody = document.querySelector('#masterTable tbody');
+  tbody.innerHTML = '';
   const rows = computeTotals(master, logs);
-  if(rows.length === 0){
+  if(!rows.length){
     tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div>No activities yet — add them in the Plan tab.</div></td></tr>';
   } else {
     rows.forEach(r => {
@@ -757,17 +792,22 @@ function renderMasterTable(master, logs){
 }
 
 function renderEditMaster(master){
-  const tbody = document.querySelector('#editMaster tbody'); tbody.innerHTML='';
-  const select = document.querySelector('#logActivity'); select.innerHTML='';
+  const tbody  = document.querySelector('#editMaster tbody');
+  const select = document.querySelector('#logActivity');
+  tbody.innerHTML = '';
+  select.innerHTML = '';
   master.forEach((r, idx) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="muted">${r.id}</td><td>${r.activity}</td><td><input data-idx="${idx}" data-field="qty" type="number" min="0" value="${r.qty}" /></td><td><input data-idx="${idx}" data-field="unitRate" type="number" min="0" value="${r.unitRate}" /></td>`;
+    tr.innerHTML = `<td class="muted">${r.id}</td><td>${r.activity}</td><td><input data-idx="${idx}" data-field="qty" type="number" min="0" value="${r.qty}"/></td><td><input data-idx="${idx}" data-field="unitRate" type="number" min="0" value="${r.unitRate}"/></td>`;
     tbody.appendChild(tr);
-    const opt = document.createElement('option'); opt.value = r.activity; opt.textContent = r.activity + ' ('+r.building+')'; select.appendChild(opt);
+    const opt = document.createElement('option');
+    opt.value = r.activity;
+    opt.textContent = r.activity + ' (' + r.building + ')';
+    select.appendChild(opt);
   });
   document.querySelectorAll('#editMaster input').forEach(inp => {
-    inp.addEventListener('change', (e)=>{
-      const i = Number(e.target.dataset.idx); const f = e.target.dataset.field; const v = Number(e.target.value)||0;
+    inp.addEventListener('change', e => {
+      const i = Number(e.target.dataset.idx), f = e.target.dataset.field, v = Number(e.target.value)||0;
       master[i][f] = v;
       saveData(master, logs);
       renderMasterTable(master, logs);
@@ -776,147 +816,185 @@ function renderEditMaster(master){
   });
 }
 
-let chartSvg = null;
 function renderChart(rows){
-  const wrap = document.getElementById('chartWrap'); wrap.innerHTML='';
+  const wrap = document.getElementById('chartWrap');
+  wrap.innerHTML = '';
   if(!rows.length) return;
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const width = Math.max(wrap.clientWidth - 24, 240);
-  const barH = 22; const gap = 10;
-  const labelW = 160;
-  const height = rows.length*(barH+gap) + 20;
-  const svg = document.createElementNS(svgNS,'svg'); svg.setAttribute('width','100%'); svg.setAttribute('height', height);
+
+  // read computed CSS colours so chart responds to theme toggle
+  const cs = getComputedStyle(document.body);
+  const colText2   = cs.getPropertyValue('--text-2').trim()   || '#8b949e';
+  const colText1   = cs.getPropertyValue('--text-1').trim()   || '#e6edf3';
+  const colBarBg   = cs.getPropertyValue('--chart-bar-bg').trim() || '#1c2330';
+  const colGood    = cs.getPropertyValue('--good').trim()     || '#22c55e';
+  const colWarn    = cs.getPropertyValue('--warn').trim()     || '#f59e0b';
+
+  const svgNS  = 'http://www.w3.org/2000/svg';
+  const w      = Math.max(wrap.clientWidth - 28, 200);
+  const barH   = 26, gap = 12, labelW = 150, margin = 60;
+  const height = rows.length * (barH + gap) + 20;
+  const svg    = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('height', height);
+
   let y = 8;
   rows.forEach(r => {
-    const label = document.createElementNS(svgNS,'text');
-    label.setAttribute('x',0); label.setAttribute('y', y+15); label.setAttribute('font-size',12);
-    label.setAttribute('fill','#8b949e'); label.setAttribute('font-family','inherit'); label.textContent = r.activity;
+    const label = document.createElementNS(svgNS, 'text');
+    label.setAttribute('x', 0); label.setAttribute('y', y + 18);
+    label.setAttribute('font-size', 14); label.setAttribute('fill', colText2);
+    label.setAttribute('font-family', 'inherit'); label.textContent = r.activity;
     svg.appendChild(label);
-    const barX = labelW; const barW = Math.max(60, width - labelW - 60);
-    const bg = document.createElementNS(svgNS,'rect'); bg.setAttribute('x',barX); bg.setAttribute('y', y); bg.setAttribute('width', barW); bg.setAttribute('height', barH); bg.setAttribute('rx','4'); bg.setAttribute('fill','#1c2330');
+
+    const barW = Math.max(60, w - labelW - margin);
+    const bg = document.createElementNS(svgNS, 'rect');
+    bg.setAttribute('x', labelW); bg.setAttribute('y', y);
+    bg.setAttribute('width', barW); bg.setAttribute('height', barH);
+    bg.setAttribute('rx', 5); bg.setAttribute('fill', colBarBg);
     svg.appendChild(bg);
+
     const valW = Math.round(barW * r.pctComplete);
     if(valW > 0){
-      const bar = document.createElementNS(svgNS,'rect'); bar.setAttribute('x',barX); bar.setAttribute('y', y); bar.setAttribute('width', valW); bar.setAttribute('height', barH); bar.setAttribute('rx','4');
-      bar.setAttribute('fill', r.pctComplete>=1? '#22c55e' : (r.pctComplete>0? '#f59e0b' : '#ef4444'));
+      const bar = document.createElementNS(svgNS, 'rect');
+      bar.setAttribute('x', labelW); bar.setAttribute('y', y);
+      bar.setAttribute('width', valW); bar.setAttribute('height', barH);
+      bar.setAttribute('rx', 5);
+      bar.setAttribute('fill', r.pctComplete >= 1 ? colGood : (r.pctComplete > 0 ? colWarn : '#ef4444'));
       svg.appendChild(bar);
     }
-    const txt = document.createElementNS(svgNS,'text');
-    txt.setAttribute('x', barX + barW + 8); txt.setAttribute('y', y+15); txt.setAttribute('font-size',12);
-    txt.setAttribute('fill','#e6edf3'); txt.setAttribute('font-family','inherit'); txt.setAttribute('font-weight','600');
+
+    const txt = document.createElementNS(svgNS, 'text');
+    txt.setAttribute('x', labelW + barW + 8); txt.setAttribute('y', y + 18);
+    txt.setAttribute('font-size', 14); txt.setAttribute('fill', colText1);
+    txt.setAttribute('font-family', 'inherit'); txt.setAttribute('font-weight', '700');
     txt.textContent = pct(r.pctComplete);
     svg.appendChild(txt);
+
     y += barH + gap;
   });
   wrap.appendChild(svg);
 }
 
 function renderKPIs(rows, master){
-  const totalPlanned = master.reduce((s,r)=>s + (r.qty*(r.unitRate||0)),0);
-  const totalEarned = rows.reduce((s,r)=>s + (r.earnedValue||0),0);
-  const overall = master.length ? (rows.reduce((s,r)=> s + r.pctComplete,0) / master.length) : 0;
-  const completed = rows.filter(r=> r.remaining===0 && r.planned>0).length;
-  const ongoing = rows.filter(r=> r.pctComplete>0 && r.pctComplete<1).length;
-  const pending = rows.filter(r=> r.pctComplete===0).length;
+  const totalPlanned = master.reduce((s, r) => s + (r.qty * (r.unitRate||0)), 0);
+  const totalEarned  = rows.reduce((s, r) => s + (r.earnedValue||0), 0);
+  const overall      = master.length ? (rows.reduce((s, r) => s + r.pctComplete, 0) / master.length) : 0;
+  const done         = rows.filter(r => r.remaining===0 && r.planned>0).length;
+  const ongoing      = rows.filter(r => r.pctComplete>0 && r.pctComplete<1).length;
+  const pending      = rows.filter(r => r.pctComplete===0).length;
+
   document.getElementById('plannedAmt').textContent = formatINR(totalPlanned);
-  document.getElementById('earnedVal').textContent = formatINR(totalEarned);
+  document.getElementById('earnedVal').textContent  = formatINR(totalEarned);
   document.getElementById('overallPct').textContent = pct(overall);
-  document.getElementById('overallBar').style.width = (overall*100) + '%';
+  document.getElementById('overallBar').style.width = (overall * 100) + '%';
   document.getElementById('statusCounts').innerHTML =
     `<div class="status-row">
        <span class="pill pending"><span class="pill-dot"></span>Pending ${pending}</span>
        <span class="pill ongoing"><span class="pill-dot"></span>Ongoing ${ongoing}</span>
-       <span class="pill done"><span class="pill-dot"></span>Done ${completed}</span>
+       <span class="pill done"><span class="pill-dot"></span>Done ${done}</span>
      </div>`;
 }
 
 function renderDailyTable(logs){
-  const tbody = document.querySelector('#dailyTable tbody'); tbody.innerHTML='';
+  const tbody = document.querySelector('#dailyTable tbody');
+  tbody.innerHTML = '';
   if(!logs.length){
     tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📝</div>No logs yet. Add an entry above.</div></td></tr>';
     return;
   }
-  logs.forEach((l, idx)=>{
+  logs.forEach((l, idx) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td class="muted">${l.date}</td><td>${l.activity}</td><td>${l.completed}</td><td><button data-idx="${idx}" class="btn red btn-sm">Remove</button></td>`;
     tbody.appendChild(tr);
   });
-  document.querySelectorAll('#dailyTable button').forEach(b=> b.addEventListener('click', (e)=>{
-    const i = Number(e.target.dataset.idx);
-    logs.splice(i,1);
-    saveData(master, logs);
-    renderDailyTable(logs); renderMasterTable(master, logs); renderEditMaster(master);
-  }));
+  document.querySelectorAll('#dailyTable button').forEach(b => {
+    b.addEventListener('click', e => {
+      const i = Number(e.target.dataset.idx);
+      logs.splice(i, 1);
+      saveData(master, logs);
+      renderDailyTable(logs);
+      renderMasterTable(master, logs);
+      renderEditMaster(master);
+    });
+  });
 }
 
 function exportCSV(master, logs){
   const rows = computeTotals(master, logs);
   const header = ['WBS','Activity','Building','Planned','Completed','%','Remaining','Planned Amount','Earned Value'];
-  const csvRows = [ header.join(';') ];
-  rows.forEach(r=>{
+  const csvRows = [header.join(';')];
+  rows.forEach(r => {
     const row = [r.wbs, r.activity, r.building, r.planned, r.completed,
-                 (r.pctComplete*100).toFixed(1) + '%', r.remaining, r.plannedAmount, r.earnedValue];
+                 (r.pctComplete*100).toFixed(1)+'%', r.remaining, r.plannedAmount, r.earnedValue];
     csvRows.push(row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';'));
   });
   const blob = new Blob([csvRows.join('\n')], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'ndt_progress_export.csv'; a.click(); URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href=url; a.download='ndt_progress_export.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
-// ── Init ───────────────────────────────────────────────────
+/* ── Init ──────────────────────────────────────────────────── */
 let {master, logs} = loadData();
 renderMasterTable(master, logs);
 renderEditMaster(master);
 renderDailyTable(logs);
 
-// ── Event Listeners ────────────────────────────────────────
+/* ── Events ────────────────────────────────────────────────── */
 document.getElementById('logForm').addEventListener('submit', function(e){
   e.preventDefault();
-  const date = document.getElementById('logDate').value;
-  const activity = document.getElementById('logActivity').value;
+  const date      = document.getElementById('logDate').value;
+  const activity  = document.getElementById('logActivity').value;
   const completed = Number(document.getElementById('logCompleted').value) || 0;
   if(!date || !activity) return alert('Date and activity required');
   logs.push({date, activity, completed});
   saveData(master, logs);
-  renderDailyTable(logs); renderMasterTable(master, logs);
+  renderDailyTable(logs);
+  renderMasterTable(master, logs);
   document.getElementById('logCompleted').value = 0;
 });
 
-document.getElementById('addActivity').addEventListener('click', ()=>{
-  const id = prompt('WBS code (e.g. 12.0)') || `x.${Math.floor(Math.random()*999)}`;
-  const activity = prompt('Activity name (e.g. CAPO Test)') || 'New Activity';
-  const building = prompt('Building name (Plant 03 or Paint Stripping)') || 'Plant 03';
-  const qty = Number(prompt('Planned qty')||0);
-  const rate = Number(prompt('Unit rate')||0);
+document.getElementById('addActivity').addEventListener('click', () => {
+  const id       = prompt('WBS code (e.g. 12.0)')                        || `x.${Math.floor(Math.random()*999)}`;
+  const activity = prompt('Activity name (e.g. CAPO Test)')              || 'New Activity';
+  const building = prompt('Building (Plant 03 or Paint Stripping)')      || 'Plant 03';
+  const qty      = Number(prompt('Planned qty') || 0);
+  const rate     = Number(prompt('Unit rate ₹') || 0);
   master.push({id, activity, building, qty, unitRate: rate});
   saveData(master, logs);
-  renderEditMaster(master); renderMasterTable(master, logs); renderDailyTable(logs);
+  renderEditMaster(master);
+  renderMasterTable(master, logs);
+  renderDailyTable(logs);
 });
 
-document.getElementById('resetSample').addEventListener('click', ()=>{
-  if(!confirm('Reset master plan to original sample? This will overwrite your master list but keep logs.')) return;
+document.getElementById('resetSample').addEventListener('click', () => {
+  if(!confirm('Reset master plan to sample? Your logs will be kept.')) return;
   master = SAMPLE_MASTER.slice();
   saveData(master, logs);
-  renderEditMaster(master); renderMasterTable(master, logs); renderDailyTable(logs);
+  renderEditMaster(master);
+  renderMasterTable(master, logs);
+  renderDailyTable(logs);
 });
 
-document.getElementById('clearLogs').addEventListener('click', ()=>{
-  if(!confirm('Clear all daily logs? This cannot be undone.')) return;
-  logs = []; saveData(master, logs); renderDailyTable(logs); renderMasterTable(master, logs);
+document.getElementById('clearLogs').addEventListener('click', () => {
+  if(!confirm('Clear ALL daily logs? This cannot be undone.')) return;
+  logs = [];
+  saveData(master, logs);
+  renderDailyTable(logs);
+  renderMasterTable(master, logs);
 });
 
-document.getElementById('exportCsv').addEventListener('click', ()=> exportCSV(master, logs));
+document.getElementById('exportCsv').addEventListener('click', () => exportCSV(master, logs));
 
-document.getElementById('downloadHtml').addEventListener('click', ()=>{
+document.getElementById('downloadHtml').addEventListener('click', () => {
   const doc = '<!doctype html>\n' + document.documentElement.outerHTML;
-  const blob = new Blob([doc], {type:'text/html'}); const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'NDT_Execution_Dashboard.html'; a.click(); URL.revokeObjectURL(url);
+  const blob = new Blob([doc], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a'); a.href=url; a.download='NDT_Execution_Dashboard.html'; a.click();
+  URL.revokeObjectURL(url);
 });
 
-window.addEventListener('beforeunload', ()=> saveData(master, logs));
-
-// Re-render chart after fonts/layout settle
-window.addEventListener('load', () => setTimeout(() => renderMasterTable(master, logs), 100));
+window.addEventListener('beforeunload', () => saveData(master, logs));
+window.addEventListener('load', () => setTimeout(() => renderMasterTable(master, logs), 120));
 </script>
 </body>
 </html>
